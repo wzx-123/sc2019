@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.goodsClassify.dao.GoodsClassifyDao">
+
+    <!--统计商品分类的名称-->
+    <select id="countGoodsClassifyName" parameterType="com.xzsd.pc.goodsClassify.entity.GoodsClassify" resultType="int">
+        select count(classify_name)
+        from t_info_goods_classify
+        where classify_name = #{classifyName}
+        and is_delete = 0
+    </select>
+
+    <!--新增商品分类-->
+    <insert id="addGoodsClassify" parameterType="com.xzsd.pc.goodsClassify.entity.GoodsClassify">
+        insert into t_info_goods_classify
+        (classify_id,
+        classify_name,
+        classify_parent,
+        classify_comment,
+        is_delete,
+        classify_level,
+        create_time,
+        create_user,
+        update_time,
+        version
+        )
+        values(
+        #{classifyId},
+        #{classifyName},
+        #{classifyParent},
+        <if test="classifyComment != null and classifyComment != ''">
+            #{classifyComment},
+        </if>
+        <if test="classifyComment == null">
+            '',
+        </if>
+        #{isDelete},
+        <if test="classifyParent == 0">
+            1,
+        </if>
+        <if test="classifyParent != 0">
+            2,
+        </if>
+        now(),
+        #{createUser},
+        now(),
+        0
+        )
+    </insert>
+
+    <!--查询分类详情-->
+    <select id="getGoodsClassify" parameterType="java.lang.String"
+            resultType="com.xzsd.pc.goodsClassify.entity.GoodsClassifyVO">
+        select
+        classify_id as classifyId,
+        classify_name as classifyName,
+        classify_comment as classifyComment,
+        classify_level as classifyLevel,
+        classify_parent classifyParent,
+        version as version
+        from t_info_goods_classify
+        where classify_id = #{classifyId}
+    </select>
+
+    <!--修改商品分类信息-->
+    <update id="updateGoodsClassify" parameterType="com.xzsd.pc.goodsClassify.entity.GoodsClassify">
+        update t_info_goods_classify
+        set
+            classify_name = #{classifyName},
+            classify_comment = #{classifyComment},
+            update_user = #{updateUser},
+            update_time = now(),
+            version = version + 1
+        where classify_id = #{classifyId}
+        and version = #{version}
+    </update>
+
+    <!--查询商品一二级分类列表-->
+    <select id="listAllGoodsClassify" resultMap="listGoodsClassify">
+        select
+        t1.classify_id as fid,
+        t1.classify_name as fclassify_name,
+        t1.classify_parent  as fclassify_parent,
+        t1.classify_level as fclassify_level,
+        t1.version as fversion,
+        t2.classify_id as sid,
+        t2.classify_name as sclassify_name,
+        t2.classify_parent as sclassify_parent,
+        t2.classify_level as sclassify_level,
+        t2.version as sversion
+        from t_info_goods_classify t1
+        left join t_info_goods_classify t2
+        on t1.classify_id = t2.classify_parent
+        where t1.classify_parent = 0
+        and t1.is_delete = 0
+        and t2.is_delete = 0
+        order by t1.create_time desc
+    </select>
+    <!--商品一二级分类映射集合-->
+    <resultMap id="listGoodsClassify" type="com.xzsd.pc.goodsClassify.entity.GoodsClassifyVO">
+        <id property="classifyId" column="fid" jdbcType="VARCHAR"/>
+        <result property="classifyName" column="fclassify_name" jdbcType="VARCHAR"/>
+        <result property="classifyParent" column="fclassify_parent" jdbcType="VARCHAR"/>
+        <result property="classifyLevel" column="fclassify_level" jdbcType="VARCHAR"/>
+        <result property="version" column="fversion" jdbcType="VARCHAR"/>
+        <collection property="twoClassifyList" ofType="com.xzsd.pc.goodsClassify.entity.SecondClassifyVO">
+            <result property="classifyId" column="sid" jdbcType="VARCHAR"/>
+            <result property="classifyName" column="sclassify_name" jdbcType="VARCHAR"/>
+            <result property="classifyParent" column="sclassify_parent" jdbcType="VARCHAR"/>
+            <result property="classifyLevel" column="sclassify_level" jdbcType="VARCHAR"/>
+            <result property="version" column="sversion" jdbcType="VARCHAR"/>
+        </collection>
+    </resultMap>
+
+    <!--删除商品分类-->
+    <update id="deleteGoodsClassify" parameterType="java.lang.String">
+        update t_info_goods_classify
+        set
+            is_delete = 1,
+            update_user = #{loginId},
+            update_time = now(),
+            version = version + 1
+        where classify_id = #{classifyId}
+    </update>
+
+    <!--获取当前分类的父级-->
+    <select id="countParentId" parameterType="java.lang.String" resultType="int">
+        select
+        count(classify_parent)
+        from t_info_goods_classify
+        where classify_parent = #{classifyId}
+    </select>
+
+</mapper>

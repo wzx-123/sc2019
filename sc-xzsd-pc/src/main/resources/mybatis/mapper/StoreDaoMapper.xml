@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xzsd.pc.store.dao.StoreDao">
+    <!--统计营业执照数量-->
+    <select id="countBusinessCode" parameterType="com.xzsd.pc.store.entity.Store" resultType="int">
+        select count(business_code)
+        from t_info_store
+        where business_code = #{businessCode}
+        and is_delete = 0
+    </select>
+
+    <!--校验是否出现重复的邀请码-->
+    <select id="countInviteCode" parameterType="com.xzsd.pc.store.entity.Store" resultType="int">
+        select count(invite_code)
+        from t_info_store
+        where invite_code = #{inviteCode}
+        and is_delete = 0
+    </select>
+
+    <!--新增门店信息-->
+    <insert id="addStore" parameterType="com.xzsd.pc.store.entity.Store">
+        insert into t_info_store(
+            store_id,
+            store_name,
+            user_id,
+            business_code,
+            invite_code,
+            phone,
+            province,
+            city,
+            area,
+            address,
+            is_delete,
+            create_time,
+            create_user,
+            update_time,
+            version
+        )
+        values (
+            #{storeId},
+            #{storeName},
+            #{userId},
+            #{businessCode},
+            #{inviteCode},
+            #{phone},
+            #{provinceId},
+            #{cityId},
+            #{areaId},
+            #{address},
+            #{isDelete},
+            now(),
+            #{createUser},
+            now(),
+            0
+        )
+    </insert>
+
+    <!--查询店长编号id-->
+    <select id="getManagerId" parameterType="com.xzsd.pc.store.entity.Store"
+            resultType="com.xzsd.pc.store.entity.Store">
+        select * from
+         t_sys_user
+         where user_code= #{userId}
+         and is_delete = 0
+    </select>
+
+    <!--查询门店详情信息-->
+    <select id="getStoreInfoById" parameterType="java.lang.String" resultType="com.xzsd.pc.store.entity.StoreVO">
+        select
+        t1.store_id storeId,
+        t1.store_name storeName,
+        t1.phone phone,
+        t1.user_id userId,
+        t1.business_code businessCode,
+        t2.area_name provinceName,
+        t3.area_name cityName,
+        t4.area_name areaName,
+        t1.address address,
+        t1.version version
+        from t_info_store t1, t_info_area_level t2, t_info_area_level t3, t_info_area_level t4
+        where t1.store_id = #{storeId}
+        and t2.area_id = t1.province
+        and t3.area_id = t1.city
+        and t4.area_id = t1.area
+    </select>
+
+    <!--修改店详情信息-->
+    <update id="updateStore" parameterType="com.xzsd.pc.store.entity.Store">
+        update t_info_store
+        set
+        store_name = #{storeName},
+        phone = #{phone},
+        user_id = #{userId},
+        business_code = #{businessCode},
+        <if test="provinceId != null and provinceId != ''">
+            province = #{provinceId},
+        </if>
+        <if test="cityId != null and cityId != ''">
+            city = #{cityId},
+        </if>
+        <if test="areaId != null and areaId != ''">
+            area = #{areaId},
+        </if>
+        address = #{address},
+        version = version + 1
+        where store_id = #{storeId}
+        and version = #{version}
+    </update>
+
+    <!--店长查询自己门店信息-->
+    <select id="getListStore" parameterType="com.xzsd.pc.store.entity.Store"
+            resultType="com.xzsd.pc.store.entity.StoreVO">
+        select
+        t2.store_id storeId,
+        t2.store_name storeName,
+        t2.phone phone,
+        t2.address address,
+        t1.user_name userName,
+        t2.invite_code inviteCode,
+        t1.user_acct userAcct,
+        t2.version version
+        from t_sys_user t1, t_info_store t2
+        where t1.user_id = t2.user_id
+        and t1.user_id = #{userId}
+        and t1.is_delete = 0
+        and t2.is_delete = 0
+        <if test="storeId != null and storeId != ''">
+            and t2.store_id like concat('%', #{storeId}, '%')
+        </if>
+        <if test="storeName != null and storeName != ''">
+            and t2.store_name like concat('%', #{storeName}, '%')
+        </if>
+        <if test="userName != null and userName != ''">
+            and t1.user_name like concat('%', #{userName}, '%')
+        </if>
+        <if test="provinceId != null and provinceId != ''">
+            and t2.province = #{provinceId}
+        </if>
+        <if test="cityId != null and cityId != ''">
+            and t2.city = #{cityId}
+        </if>
+        <if test="areaId != null and areaId != ''">
+            and t2.area = #{areaId}
+        </if>
+        order by t2.create_time desc
+    </select>
+
+    <!--管理员查询所有门店信息-->
+    <select id="getListStoreByAdmin" parameterType="com.xzsd.pc.store.entity.Store"
+            resultType="com.xzsd.pc.store.entity.StoreVO">
+        select
+        t2.store_id storeId,
+        t2.store_name storeName,
+        t2.phone phone,
+        t2.address address,
+        t1.user_name userName,
+        t2.invite_code inviteCode,
+        t1.user_acct userAcct,
+        t2.version version
+        from t_sys_user t1, t_info_store t2
+        where t1.user_id = t2.user_id
+        and t1.is_delete = 0
+        and t2.is_delete = 0
+        <if test="storeId != null and storeId != ''">
+            and t2.store_id like concat('%', #{storeId}, '%')
+        </if>
+        <if test="storeName != null and storeName != ''">
+            and t2.store_name like concat('%', #{storeName}, '%')
+        </if>
+        <if test="userName != null and userName != ''">
+            and t1.user_name like concat('%', #{userName}, '%')
+        </if>
+        <if test="provinceId != null and provinceId != ''">
+            and t2.province = #{provinceId}
+        </if>
+        <if test="cityId != null and cityId != ''">
+            and t2.city = #{cityId}
+        </if>
+        <if test="areaId != null and areaId != ''">
+            and t2.area = #{areaId}
+        </if>
+        order by t2.create_time desc
+    </select>
+
+    <!--删除门店信息-->
+    <update id="deleteStoreById" parameterType="java.lang.String">
+        update t_info_store
+        set
+        is_delete = 1,
+        update_time = now(),
+        version = version + 1
+        where store_id in
+        <foreach item="storeId" index="index" collection="listStoreId" open="(" separator="," close=")">
+            #{storeId}
+        </foreach>
+    </update>
+</mapper>
