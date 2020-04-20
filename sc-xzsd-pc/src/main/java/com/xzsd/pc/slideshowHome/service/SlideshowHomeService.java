@@ -1,11 +1,14 @@
 package com.xzsd.pc.slideshowHome.service;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.neusoft.core.restful.AppResponse;
-import com.neusoft.security.client.utils.SecurityUtils;
 import com.neusoft.util.StringUtil;
 import com.xzsd.pc.goods.entity.Goods;
 import com.xzsd.pc.slideshowHome.dao.SlideshowHomeDao;
-import com.xzsd.pc.slideshowHome.entity.SlideshowHome;
+import com.xzsd.pc.slideshowHome.entity.SlideAndHotGoods;
+import com.xzsd.pc.slideshowHome.entity.SlideInfo;
+import com.xzsd.pc.slideshowHome.entity.SlideVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,13 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.neusoft.core.page.PageUtils.getPageInfo;
-
-/**
- * 轮播图
- * @Author wzx
- * @Date 2020-04-10
- */
 @Service
 public class SlideshowHomeService {
 
@@ -28,103 +24,101 @@ public class SlideshowHomeService {
     private SlideshowHomeDao slideshowHomeDao;
 
     /**
-     * 添加首页轮播图实现
-     * @param slideshowHome
+     * 新增轮播图·
+     * @param slideInfo
      * @return
+     * @author wzx
+     * @date 2020-3-29
      */
     @Transactional(rollbackFor = Exception.class)
-    public AppResponse addSlideshowHome(SlideshowHome slideshowHome){
-        String slideshowId = slideshowHome.getSlideshowId();
-        //查询轮播图对应的商品是否存在
-        int countGoodsId = slideshowHomeDao.countGoodsId(slideshowHome.getGoodsId(),slideshowId);
-        if(0 != countGoodsId){
-            return AppResponse.bizError("该商品已存在轮播图中");
+    public AppResponse addSlide(SlideInfo slideInfo){
+        //校验是否存在相同的排序
+        int countSort = slideshowHomeDao.countSort(slideInfo);
+        if(countSort != 0){
+            return AppResponse.versionError("出现重复的排序或当前的商品已被选择，请重新输入！");
         }
-        //查询轮播图对应的序号是否存在
-        int countSlideshowNum = slideshowHomeDao.countSlideshowNum(slideshowHome.getSlideshowNum(),slideshowId);
-        if(countSlideshowNum != 0){
-            //处理排序序号
-            slideshowHomeDao.solveSlideshowNum(slideshowHome.getSlideshowNum());
+        slideInfo.setSlideshowId(StringUtil.getCommonCode(2));
+        int count = slideshowHomeDao.addSlide(slideInfo);
+        if(count == 0){
+            return AppResponse.versionError("新增轮播图失败！");
         }
-        slideshowHome.setSlideshowId("lbt" + StringUtil.getCommonCode(2));
-        //获取修改人的id
-        String createUser = SecurityUtils.getCurrentUserId();
-        slideshowHome.setCreateUser(createUser);
-        int count = slideshowHomeDao.addSlideshowHome(slideshowHome);
-        if(0 == count){
-            return AppResponse.bizError("添加首页轮播图失败");
-        }
-        return AppResponse.success("添加首页轮播图成功",slideshowHome);
+        return AppResponse.success("新增轮播图成功！");
     }
 
     /**
-     * 分页查询首页轮播图实现
-     * @param slideshowStateId
+     * 修改轮播图状态
+     * @param slideInfo
      * @return
+     * @author wzx
+     * @date 2020-3-29
      */
-    public AppResponse listSlideshowHome(String slideshowStateId){
-        List<SlideshowHome> slideshowHomeList = slideshowHomeDao.listSlideshowHomeByPage(slideshowStateId);
-        return AppResponse.success("查询首页轮播图列表成功" ,getPageInfo(slideshowHomeList));
+    @Transactional(rollbackFor = Exception.class)
+    public AppResponse updateSlideStatus(SlideInfo slideInfo){
+        List<String> listSlideId = Arrays.asList(slideInfo.getSlideshowId().split(","));
+        List<String> listVersion = Arrays.asList(slideInfo.getVersion().split(","));
+        List<SlideInfo> slideInfoList = new ArrayList<>();
+        for (int i = 0; i < listSlideId.size() && i < listVersion.size(); i++) {
+            SlideInfo info = new SlideInfo();
+            //设置轮播图id
+            info.setSlideshowId(listSlideId.get(i));
+            //设置轮播图版本号
+            info.setVersion(listVersion.get(i));
+            //设置轮播图状态
+            info.setSlideshowStateId(slideInfo.getSlideshowStateId());
+            //设置更新人
+            info.setUpdateUser(slideInfo.getUpdateUser());
+            slideInfoList.add(info);
+        }
+        int count = slideshowHomeDao.updateSlideStatus(slideInfoList);
+        if(count == 0){
+            return AppResponse.versionError("修改轮播图状态失败！");
+        }
+        return AppResponse.success("修改轮播图状态成功！");
     }
 
     /**
-     * 查询商品分页实现
-     * @param goodsName
-     * @param goodsId
+     * 查询轮播图列表（分页）
+     * @param slideInfo
      * @return
+     * @author wzx
+     * @date 2020-3-29
      */
-    public AppResponse listGoods(String goodsName,String goodsId){
-        List<Goods> goodsList = slideshowHomeDao.listGoodsByPage(goodsName,goodsId);
-        return AppResponse.success("查询商品列表成功" ,getPageInfo(goodsList));
+    public AppResponse getListSlide(SlideInfo slideInfo){
+        PageHelper.startPage(slideInfo.getPageNum(), slideInfo.getPageSize());
+        List<SlideVO> listSlide = slideshowHomeDao.getListSlide(slideInfo);
+        PageInfo<SlideVO> pageData = new PageInfo<>(listSlide);
+        return AppResponse.success("查询成功！", pageData);
     }
 
     /**
-     * 修改首页轮播图状态实现
+     * 删除轮播图
      * @param slideshowId
-     * @param slideshowStateId
-     * @param version
+     * @param userId
      * @return
+     * @author wzx
+     * @date 2020-3-29
      */
     @Transactional(rollbackFor = Exception.class)
-    public AppResponse updateSlideshowHomeState(String slideshowId,int slideshowStateId,String version){
-        //获取首页轮播图id
-        List<String> listId = Arrays.asList(slideshowId.split(","));
-        //获取首页轮播图版本
-        List<String> listVersion = Arrays.asList(version.split(","));
-        List<SlideshowHome> updateSlideList = new ArrayList<>();
-        //获取当前登录人id
-        String updateUser = SecurityUtils.getCurrentUserId();
-        //将全部的更改信息放入一个list里
-        for (int i = 0 ; i < listId.size() ; i++ ) {
-            SlideshowHome slideshowHome = new SlideshowHome();
-            slideshowHome.setSlideshowId(listId.get(i));
-            slideshowHome.setVersion(listVersion.get(i));
-            slideshowHome.setSlideshowStateId(slideshowStateId);
-            slideshowHome.setUpdateUser(updateUser);
-            updateSlideList.add(slideshowHome);
+    public AppResponse deleteSlide(String slideshowId, String userId){
+        List<String> listSlideId = Arrays.asList(slideshowId.split(","));
+        int count = slideshowHomeDao.deleteSlide(listSlideId, userId);
+        if(count == 0){
+            return AppResponse.versionError("删除轮播图失败！");
         }
-        int count = slideshowHomeDao.updateSlideshowHomeState(updateSlideList);
-        if(0 == count){
-            return AppResponse.bizError("修改状态失败！");
-        }
-        return AppResponse.success("修改状态成功！");
+        return AppResponse.success("删除轮播图成功！");
     }
 
     /**
-     * 删除首页轮播图
-     * @param slideshowId
+     * 新增轮播图和热门商品时的商品列表
+     * @param goods
      * @return
+     * @author wzx
+     * @Date 2020-03-29
      */
-    @Transactional(rollbackFor = Exception.class)
-    public AppResponse deleteSlideshowHome(String slideshowId){
-        //获取首页轮播图id
-        List<String> slideshowList = Arrays.asList(slideshowId.split(","));
-        //获取当前登录人id
-        String updateUser = SecurityUtils.getCurrentUserId();
-        int count = slideshowHomeDao.deleteSlideshowHome(slideshowList,updateUser);
-        if(0 == count){
-            return AppResponse.bizError("删除商品失败！");
-        }
-        return AppResponse.success("删除商品成功！");
+    public AppResponse getSlideAndHotGoods(Goods goods){
+        PageHelper.startPage(goods.getPageNum(), goods.getPageSize());
+        List<SlideAndHotGoods> slideAndHotGoods = slideshowHomeDao.getSlideAndHotGoods(goods);
+        PageInfo<SlideAndHotGoods> pageData = new PageInfo<>(slideAndHotGoods);
+        return AppResponse.success("查询成功！", pageData);
     }
 }

@@ -34,6 +34,18 @@ public class StoreVO {
      */
     private String userAcct;
     /**
+     * 省级编号
+     */
+    private String provinceId;
+    /**
+     * 城市级编号
+     */
+    private String cityId;
+    /**
+     * 区级编号
+     */
+    private String areaId;
+    /**
      * 省名
      */
     private String provinceName;
@@ -49,6 +61,10 @@ public class StoreVO {
      * 地址
      */
     private String address;
+    /**
+     * 版本号
+     */
+    private String version;
 
     public String getStoreId() {
         return storeId;
@@ -114,6 +130,30 @@ public class StoreVO {
         this.userAcct = userAcct;
     }
 
+    public String getProvinceId() {
+        return provinceId;
+    }
+
+    public void setProvinceId(String provinceId) {
+        this.provinceId = provinceId;
+    }
+
+    public String getCityId() {
+        return cityId;
+    }
+
+    public void setCityId(String cityId) {
+        this.cityId = cityId;
+    }
+
+    public String getAreaId() {
+        return areaId;
+    }
+
+    public void setAreaId(String areaId) {
+        this.areaId = areaId;
+    }
+
     public String getProvinceName() {
         return provinceName;
     }
@@ -153,9 +193,4 @@ public class StoreVO {
     public void setVersion(String version) {
         this.version = version;
     }
-
-    /**
-     * 版本号
-     */
-    private String version;
 }

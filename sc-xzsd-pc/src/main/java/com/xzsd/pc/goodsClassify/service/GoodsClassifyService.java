@@ -72,10 +72,12 @@ public class GoodsClassifyService {
     @Transactional(rollbackFor = Exception.class)
     public AppResponse updateGoodsClassify(GoodsClassify goodsClassify, String loginId){
         GoodsClassifyVO category = goodsClassifyDao.getGoodsClassify(goodsClassify.getClassifyId());
-        int count = goodsClassifyDao.countGoodsClassifyName(goodsClassify);
         //判断当前的分类名称是否存在相同的，只有修改后存在相同的分类名才会提示重新输入
-        if(count != 0 && category.getClassifyName().equals(goodsClassify.getClassifyName()) == false){
-            return AppResponse.bizError("存在相同的分类名，请重新输入！");
+        if(category.getClassifyName().equals(goodsClassify.getClassifyName()) == false){
+            int count = goodsClassifyDao.countGoodsClassifyName(goodsClassify);
+            if(count != 0) {
+                return AppResponse.bizError("存在相同的分类名，请重新输入！");
+            }
         }
         goodsClassify.setUpdateUser(loginId);
         int classifyNum = goodsClassifyDao.updateGoodsClassify(goodsClassify);

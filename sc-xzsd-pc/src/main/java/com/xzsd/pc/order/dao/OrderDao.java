@@ -19,17 +19,17 @@ public interface OrderDao {
 
     /**
      * 查询订单列表（分页）
-     * @param orderInfo
+     * @param order
      * @return
      */
-    List<OrderVO> getListOrder(Order orderInfo);
+    List<OrderVO> getListOrder(Order order);
 
     /**
      * 管理员查询全部订单（分页）
-     * @param orderInfo
+     * @param order
      * @return
      */
-    List<OrderVO> getListOrderByAdmin(Order orderInfo);
+    List<OrderVO> getListOrderByAdmin(Order order);
 
     /**
      * 查询订单详情

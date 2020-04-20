@@ -30,23 +30,23 @@ public class HotGoodsService {
 
     /**
      * 新增热门商品
-     * @param hotGoodsInfo
+     * @param hotGoods
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
-    public AppResponse addHotGoods(HotGoods hotGoodsInfo){
+    public AppResponse addHotGoods(HotGoods hotGoods){
         //校验排序是否重复
-        int num = hotGoodsDao.countSort(hotGoodsInfo);
+        int num = hotGoodsDao.countSort(hotGoods);
         if(num != 0){
             return AppResponse.versionError("出现重复的排序，请重新输入！");
         }
         //校验商品是否已经被选择
-        int goodsIsUse = hotGoodsDao.countGoodsIsUse(hotGoodsInfo);
+        int goodsIsUse = hotGoodsDao.countGoodsIsUse(hotGoods);
         if(goodsIsUse != 0){
             return AppResponse.versionError("该商品已经被选择，请重新选择");
         }
-        hotGoodsInfo.setHotGoodsId(StringUtil.getCommonCode(2));
-        hotGoodsDao.addHotGoods(hotGoodsInfo);
+        hotGoods.setHotGoodsId(StringUtil.getCommonCode(2));
+        hotGoodsDao.addHotGoods(hotGoods);
         return AppResponse.success("新增热门商品成功！");
     }
 
@@ -65,27 +65,27 @@ public class HotGoodsService {
 
     /**
      * 修改热门商品
-     * @param hotGoodsInfo
+     * @param hotGoods
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
-    public AppResponse updateHotGoods(HotGoods hotGoodsInfo){
-        HotGoodsVO hotGoods = hotGoodsDao.getHotGoodsById(hotGoodsInfo.getHotGoodsId());
-        if(hotGoods.getHotGoodsNum() != hotGoodsInfo.getHotGoodsNum()){
+    public AppResponse updateHotGoods(HotGoods hotGoods){
+        HotGoodsVO hotGoodsVO = hotGoodsDao.getHotGoodsById(hotGoods.getHotGoodsId());
+        if(hotGoodsVO.getHotGoodsNum() != hotGoods.getHotGoodsNum()){
             //校验排序是否重复
-            int num = hotGoodsDao.countSort(hotGoodsInfo);
+            int num = hotGoodsDao.countSort(hotGoods);
             if(0 != num){
                 return AppResponse.versionError("出现相同的排序，请重新输入");
             }
         }
         //校验商品是否已经被选择
-        int goodsIsUse = hotGoodsDao.countGoodsIsUse(hotGoodsInfo);
-        if(!hotGoods.getGoodsId().equals(hotGoodsInfo.getGoodsId())){
+        int goodsIsUse = hotGoodsDao.countGoodsIsUse(hotGoods);
+        if(!hotGoodsVO.getGoodsId().equals(hotGoods.getGoodsId())){
             if(0 != goodsIsUse){
                 return AppResponse.versionError("该商品已经被选择，请重新选择");
             }
         }
-        int count = hotGoodsDao.updateHotGoods(hotGoodsInfo);
+        int count = hotGoodsDao.updateHotGoods(hotGoods);
         if(count == 0){
             return AppResponse.versionError("修改热门商品失败！");
         }
@@ -94,12 +94,12 @@ public class HotGoodsService {
 
     /**
      * 查询热门商品列表（分页）
-     * @param hotGoodsInfo
+     * @param hotGoods
      * @return
      */
-    public AppResponse getListHotGoods(HotGoods hotGoodsInfo){
-        PageHelper.startPage(hotGoodsInfo.getPageNum(), hotGoodsInfo.getPageSize());
-        List<HotGoodsVO> listHotGoods = hotGoodsDao.getListHotGoods(hotGoodsInfo);
+    public AppResponse getListHotGoods(HotGoods hotGoods){
+        PageHelper.startPage(hotGoods.getPageNum(), hotGoods.getPageSize());
+        List<HotGoodsVO> listHotGoods = hotGoodsDao.getListHotGoods(hotGoods);
         PageInfo<HotGoodsVO> pageData = new PageInfo<>(listHotGoods);
         return AppResponse.success("查询成功！", pageData);
     }

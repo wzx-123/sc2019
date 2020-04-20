@@ -4,12 +4,11 @@
     <select id="getListArea" parameterType="com.xzsd.pc.area.entity.Area"
             resultType="com.xzsd.pc.area.entity.AreaVO">
         select
-        area_id as areaId,
+        id as areaId,
         area_name as areaName,
         parent_area as parentArea,
         parent_level_id as parentLevelId
         from t_info_area_level
         where parent_area = #{areaId}
-        and is_delete = 0
     </select>
 </mapper>

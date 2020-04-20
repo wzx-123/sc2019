@@ -33,16 +33,17 @@ public class OrderService {
 
     /**
      * 查询订单列表（分页）
-     * @param orderInfo
+     * @param order
      * @return
      */
-    public AppResponse getListOrder(Order orderInfo){
+    public AppResponse getListOrder(Order order){
         List<OrderVO> listOrder = null;
-        PageHelper.startPage(orderInfo.getPageNum(), orderInfo.getPageSize());
-        if("2".equals(orderInfo.getRole())){
-            listOrder = orderDao.getListOrder(orderInfo);
-        }else if("0".equals(orderInfo.getRole()) || "1".equals(orderInfo.getRole())){
-            listOrder = orderDao.getListOrderByAdmin(orderInfo);
+        PageHelper.startPage(order.getPageNum(), order.getPageSize());
+        //根据角色查询订单列表
+        if("2".equals(order.getRole())){
+            listOrder = orderDao.getListOrder(order);
+        }else if("0".equals(order.getRole()) || "1".equals(order.getRole())){
+            listOrder = orderDao.getListOrderByAdmin(order);
         }
         PageInfo<OrderVO> pageData = new PageInfo<>(listOrder);
         return AppResponse.success("查询订单列表成功！", pageData);
@@ -67,26 +68,26 @@ public class OrderService {
 
     /**
      * 修改订单状态
-     * @param orderInfo
+     * @param order
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
-    public AppResponse updateOrderStatus(Order orderInfo){
-        String role = userDao.getUserRole(orderInfo.getLoginUserId());
+    public AppResponse updateOrderStatus(Order order){
+        String role = userDao.getUserRole(order.getLoginUserId());
         //判断只有店长才能修改订单
         if("2".equals(role) == false){
             return AppResponse.versionError("只有店长才可以修改订单！");
         }
-        List<String> listOrderId = Arrays.asList(orderInfo.getOrderId().split(","));
-        List<String> listVersion = Arrays.asList(orderInfo.getVersion().split(","));
+        List<String> listOrderId = Arrays.asList(order.getOrderId().split(","));
+        List<String> listVersion = Arrays.asList(order.getVersion().split(","));
         List<Order> orderList = new ArrayList<>();
         for (int i = 0; i < listOrderId.size() && i < listVersion.size(); i++) {
-            Order order = new Order();
-            order.setOrderId(listOrderId.get(i));
-            order.setVersion(listVersion.get(i));
-            order.setOrderStateId(orderInfo.getOrderStateId());
-            order.setUpdateUser(orderInfo.getUpdateUser());
-            orderList.add(order);
+            Order orderInfo = new Order();
+            orderInfo.setOrderId(listOrderId.get(i));
+            orderInfo.setVersion(listVersion.get(i));
+            orderInfo.setOrderStateId(order.getOrderStateId());
+            orderInfo.setUpdateUser(order.getUpdateUser());
+            orderList.add(orderInfo);
         }
         int count = orderDao.updateOrderStatus(orderList);
         if(count == 0){

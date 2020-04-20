@@ -94,22 +94,22 @@
     <!--查询热门位商品展示数量-->
     <select id="getHotGoodsShowNumber" resultType="com.xzsd.pc.hotGoods.entity.HotGoodsShowNumber">
         select
-        dic_value as hotGoodsShowNum,
+        dict_value as hotGoodsShowNum,
         version as version
-        from t_dictionary
-        where dic_type = 'hotGoodsShowNumber'
+        from t_sys_dictionary
+        where dict_type = 'hotGoodsShowNumber'
         and is_delete = 0
     </select>
 
     <!--修改热门商品展示数量-->
     <update id="modifyShowNumber" parameterType="com.xzsd.pc.hotGoods.entity.HotGoodsShowNumber">
-        update t_dictionary
+        update t_sys_dictionary
         set
-            dic_value = #{hotGoodsShowNum},
+            dict_value = #{hotGoodsShowNum},
             update_user = #{updateUser},
             update_time = now(),
             version = version + 1
-        where dic_type = 'hotGoodsShowNumber'
+        where dict_type = 'hotGoodsShowNumber'
         and version = #{version}
     </update>
 
@@ -117,10 +117,10 @@
     <update id="deleteHotGoods" parameterType="java.lang.String">
         update t_info_hot_goods
         set
-        is_delete = 1,
-        update_time = now(),
-        update_user = #{updateUser},
-        version = version + 1
+            is_delete = 1,
+            update_time = now(),
+            update_user = #{updateUser},
+            version = version + 1
         where hot_goods_id in
         <foreach item="hotGoodsId" index="index" collection="listHotId" open="(" separator="," close=")">
             #{hotGoodsId}

@@ -18,15 +18,15 @@ public class AreaService {
 
     /**
      * 查询省市区信息
-     * @param areaInfo
+     * @param area
      * @return
      */
-    public AppResponse getListArea(Area areaInfo){
-        List<AreaVO> listArea = areaDao.getListArea(areaInfo);
+    public AppResponse getListArea(Area area){
+        List<AreaVO> listArea = areaDao.getListArea(area);
         if(listArea.size() == 0){
             return AppResponse.bizError("查询失败！");
         }
-        //这是为了封装成接口文档需要的名称
+        //封装成接口文档需要的名称
         AreaList areaList = new AreaList();
         areaList.setAreaList(listArea);
         return AppResponse.success("查询成功！", areaList);

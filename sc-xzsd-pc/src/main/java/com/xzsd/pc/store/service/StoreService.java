@@ -3,11 +3,11 @@ package com.xzsd.pc.store.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.neusoft.core.restful.AppResponse;
-import com.neusoft.util.RandomUtil;
 import com.neusoft.util.StringUtil;
 import com.xzsd.pc.store.dao.StoreDao;
 import com.xzsd.pc.store.entity.Store;
 import com.xzsd.pc.store.entity.StoreVO;
+import com.xzsd.pc.utils.RandomUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,17 +35,17 @@ public class StoreService {
         //校验店长的编号是否存在
         Store managerId = storeDao.getManagerId(storeInfo);
         if(managerId == null){
-            return AppResponse.bizError("该店长编号不存在，请重新输入！");
+            return AppResponse.bizError("店长编号不存在，请重新输入！");
         }
         storeInfo.setStoreId(StringUtil.getCommonCode(2));
         storeInfo.setIsDelete(0);
         //设置随机邀请码
-        storeInfo.setInviteCode(RandomUtil.radmonkey(6));
+        storeInfo.setInviteCode(RandomUtil.randomLetter(6));
         //校验邀请码是否重复
         int inviteCode = storeDao.countInviteCode(storeInfo);
         while(inviteCode != 0){
             //设置随机邀请码
-            storeInfo.setInviteCode(RandomUtil.radmonkey(6));
+            storeInfo.setInviteCode(RandomUtil.randomLetter(6));
             inviteCode = storeDao.countInviteCode(storeInfo);
         }
         //新增门店信息
@@ -64,7 +64,7 @@ public class StoreService {
     public AppResponse getStoreInfoById(String storeId){
         StoreVO storeInfo = storeDao.getStoreInfoById(storeId);
         if(storeInfo == null){
-            return AppResponse.bizError("查询失败");
+            return AppResponse.versionError("查询失败");
         }
         return AppResponse.success("查询成功", storeInfo);
     }
@@ -82,7 +82,7 @@ public class StoreService {
             //校验店长编号是否存在
             Store managerId = storeDao.getManagerId(storeInfo);
             if(managerId == null){
-                return AppResponse.success("该店长编号不存在，请重新输入！");
+                return AppResponse.versionError("该店长编号不存在，请重新输入！");
             }
         }
         //判断营业执政编码有没有修改
@@ -90,13 +90,13 @@ public class StoreService {
             //校验营业执政编码是否存在
             int count = storeDao.countBusinessCode(storeInfo);
             if(count != 0){
-                return AppResponse.success("营业执照编码已存在，请重新输入！");
+                return AppResponse.versionError("营业执照编码已存在，请重新输入！");
             }
         }
         //更新门店
         int num = storeDao.updateStore(storeInfo);
         if(num == 0){
-            return AppResponse.success("修改门店信息失败");
+            return AppResponse.versionError("修改门店信息失败");
         }
         return AppResponse.success("修改门店信息成功");
     }

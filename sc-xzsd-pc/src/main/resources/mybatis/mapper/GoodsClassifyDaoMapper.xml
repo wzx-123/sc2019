@@ -68,6 +68,7 @@
         set
             classify_name = #{classifyName},
             classify_comment = #{classifyComment},
+            classify_parent = #{classifyParent},
             update_user = #{updateUser},
             update_time = now(),
             version = version + 1

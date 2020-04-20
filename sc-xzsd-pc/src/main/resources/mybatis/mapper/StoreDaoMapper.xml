@@ -3,7 +3,7 @@
 <mapper namespace="com.xzsd.pc.store.dao.StoreDao">
     <!--统计营业执照数量-->
     <select id="countBusinessCode" parameterType="com.xzsd.pc.store.entity.Store" resultType="int">
-        select count(business_code)
+        select count(*)
         from t_info_store
         where business_code = #{businessCode}
         and is_delete = 0
@@ -22,6 +22,7 @@
         insert into t_info_store(
             store_id,
             store_name,
+            store_acct,
             user_id,
             business_code,
             invite_code,
@@ -39,6 +40,7 @@
         values (
             #{storeId},
             #{storeName},
+            #{storeAcct},
             #{userId},
             #{businessCode},
             #{inviteCode},
@@ -58,30 +60,35 @@
     <!--查询店长编号id-->
     <select id="getManagerId" parameterType="com.xzsd.pc.store.entity.Store"
             resultType="com.xzsd.pc.store.entity.Store">
-        select * from
-         t_sys_user
-         where user_code= #{userId}
-         and is_delete = 0
+        select
+        user_code as userId,
+        phone as phone
+        from t_sys_user
+        where user_code= #{userId}
+        and is_delete = 0
     </select>
 
     <!--查询门店详情信息-->
     <select id="getStoreInfoById" parameterType="java.lang.String" resultType="com.xzsd.pc.store.entity.StoreVO">
         select
-        t1.store_id storeId,
-        t1.store_name storeName,
-        t1.phone phone,
-        t1.user_id userId,
-        t1.business_code businessCode,
-        t2.area_name provinceName,
-        t3.area_name cityName,
-        t4.area_name areaName,
-        t1.address address,
-        t1.version version
+        t1.store_id as storeId,
+        t1.store_name as storeName,
+        t1.phone as phone,
+        t1.user_id as userId,
+        t1.province as provinceId,
+        t1.city as cityId,
+        t1.area as areaId,
+        t1.business_code as businessCode,
+        t2.area_name as provinceName,
+        t3.area_name as cityName,
+        t4.area_name as areaName,
+        t1.address as address,
+        t1.version as version
         from t_info_store t1, t_info_area_level t2, t_info_area_level t3, t_info_area_level t4
         where t1.store_id = #{storeId}
-        and t2.area_id = t1.province
-        and t3.area_id = t1.city
-        and t4.area_id = t1.area
+        and t2.id = t1.province
+        and t3.id = t1.city
+        and t4.id = t1.area
     </select>
 
     <!--修改店详情信息-->
@@ -120,7 +127,7 @@
         t1.user_acct userAcct,
         t2.version version
         from t_sys_user t1, t_info_store t2
-        where t1.user_id = t2.user_id
+        where t1.user_code = t2.user_id
         and t1.user_id = #{userId}
         and t1.is_delete = 0
         and t2.is_delete = 0
@@ -158,7 +165,7 @@
         t1.user_acct userAcct,
         t2.version version
         from t_sys_user t1, t_info_store t2
-        where t1.user_id = t2.user_id
+        where t1.user_code = t2.user_id
         and t1.is_delete = 0
         and t2.is_delete = 0
         <if test="storeId != null and storeId != ''">
@@ -186,9 +193,10 @@
     <update id="deleteStoreById" parameterType="java.lang.String">
         update t_info_store
         set
-        is_delete = 1,
-        update_time = now(),
-        version = version + 1
+            is_delete = 1,
+            update_time = now(),
+            update_user = #{loginUserId},
+            version = version + 1
         where store_id in
         <foreach item="storeId" index="index" collection="listStoreId" open="(" separator="," close=")">
             #{storeId}

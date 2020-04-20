@@ -1,8 +1,9 @@
 package com.xzsd.pc.slideshowHome.controller;
 
 import com.neusoft.core.restful.AppResponse;
-import com.neusoft.util.AuthUtils;
-import com.xzsd.pc.slideshowHome.entity.SlideshowHome;
+import com.neusoft.security.client.utils.SecurityUtils;
+import com.xzsd.pc.goods.entity.Goods;
+import com.xzsd.pc.slideshowHome.entity.SlideInfo;
 import com.xzsd.pc.slideshowHome.service.SlideshowHomeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 
 /**
- * @ClassName SlideshowHomeController
- * @Deprecation 首页轮播图控制类
+ * @Description 增删改查
+ * @author wzx
+ * @date 2020-3-29
  */
 @RestController
 @RequestMapping("/slideshowHome")
@@ -25,96 +27,100 @@ public class SlideshowHomeController {
     @Resource
     private SlideshowHomeService slideshowHomeService;
 
+
     /**
-     * 新增首页轮播图
-     * @param slideshowHome
+     * 新增轮播图
+     * @param slideInfo
      * @return
-     * @Author wzx
-     * @Date 2020-04-10
+     * @author wzx
+     * @date 2020-3-29
      */
-    @PostMapping("addGoods")
-    public AppResponse addSlideshowHome(SlideshowHome slideshowHome){
-        try{
-            AppResponse appResponse  = slideshowHomeService.addSlideshowHome(slideshowHome);
-            return appResponse;
+    @PostMapping("addSlideshowHome")
+    public AppResponse addSlide(SlideInfo slideInfo){
+        try {
+            //获取用户角色
+            String userId = SecurityUtils.getCurrentUserId();
+            slideInfo.setCreateUser(userId);
+            return slideshowHomeService.addSlide(slideInfo);
         }catch (Exception e){
-            logger.error("首页轮播图新增失败",e);
+            logger.error("新增失败");
             System.out.println(e.toString());
             throw e;
         }
     }
 
     /**
-     * 分页首页轮播图信息
-     * @param slideshowStateId
+     * 查询轮播图列表（分页）
+     * @param slideInfo
      * @return
-     * @Author wzx
-     * @Date 2020-04-10
+     * @author wzx
+     * @date 2020-3-29
      */
     @PostMapping("listSlideshowHome")
-    public AppResponse listSlideshowHome(String slideshowStateId){
-        try{
-            return slideshowHomeService.listSlideshowHome(slideshowStateId);
+    public AppResponse getListSlide(SlideInfo slideInfo){
+        try {
+            return slideshowHomeService.getListSlide(slideInfo);
         }catch (Exception e){
-            logger.error("分页查询首页轮播图失败",e);
+            logger.error("查询轮播图列表失败");
             System.out.println(e.toString());
             throw e;
         }
     }
 
     /**
-     * 查询商品分页实现
-     * @param goodsName
-     * @param goodsId
+     * 修改轮播图状态
+     * @param slideInfo
      * @return
-     * @Author wzx
-     * @Date 2020-04-10
-     */
-    @PostMapping("listGoods")
-    public AppResponse listGoods(String goodsName,String goodsId){
-        try{
-            return slideshowHomeService.listGoods(goodsName,goodsId);
-        }catch (Exception e){
-            logger.error("分页查询首页轮播图失败",e);
-            System.out.println(e.toString());
-            throw e;
-        }
-    }
-
-    /**
-     * 修改首页轮播图状态实现
-     * @param slideshowId
-     * @param slideshowStateId
-     * @param version
-     * @return
-     * @Author wzx
-     * @Date 2020-04-10
+     * @author wzx
+     * @date 2020-3-29
      */
     @PostMapping("updateSlideshowHomeState")
-    public AppResponse updateSlideshowHomeState(String slideshowId,int slideshowStateId,String version){
-        try{
-            return slideshowHomeService.updateSlideshowHomeState(
-                    slideshowId,slideshowStateId,version);
+    public AppResponse updateSlideStatus(SlideInfo slideInfo){
+        try {
+            //获取用户角色
+            String userId = SecurityUtils.getCurrentUserId();
+            slideInfo.setUpdateUser(userId);
+            return slideshowHomeService.updateSlideStatus(slideInfo);
         }catch (Exception e){
-            logger.error("修改首页轮播图状态失败",e);
+            logger.error("修改轮播图状态失败");
             System.out.println(e.toString());
             throw e;
         }
     }
 
     /**
-     * 删除首页轮播图
+     * 删除轮播图
      * @param slideshowId
      * @return
-     * @Author wzx
-     * @Date 2020-04-10
+     * @author wzx
+     * @date 2020-3-29
      */
     @PostMapping("deleteSlideshowHome")
-    public AppResponse deleteSlideshowHome(String slideshowId){
-        try{
-            return slideshowHomeService.deleteSlideshowHome(slideshowId);
+    public AppResponse deleteSlide(String slideshowId){
+        try {
+            //获取用户角色
+            String userId = SecurityUtils.getCurrentUserId();
+            return slideshowHomeService.deleteSlide(slideshowId, userId);
         }catch (Exception e){
-            logger.error("修改首页轮播图状态失败",e);
+            logger.error("删除失败！");
+            System.out.println(e.toString());
+            throw e;
+        }
+    }
+
+    /**
+     * 新增轮播图和热门商品时的商品列表
+     * @param goods
+     * @return
+     * @author wzx
+     * @Date 2020-03-31
+     */
+    @PostMapping("listGoods")
+    public AppResponse getSlideAndHotGoods(Goods goods){
+        try {
+            return slideshowHomeService.getSlideAndHotGoods(goods);
+        }catch (Exception e){
+            logger.error("查询新增轮播图和热门商品时的商品列表失败");
             System.out.println(e.toString());
             throw e;
         }

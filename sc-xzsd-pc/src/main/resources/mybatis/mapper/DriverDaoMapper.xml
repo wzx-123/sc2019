@@ -7,7 +7,6 @@
         from t_sys_user
         where is_delete = 0
         and user_acct = #{userAcct}
-        or phone = #{phone}
     </select>
 
     <!--统计手机号数量-->
@@ -20,7 +19,7 @@
 
     <!--新增司机-->
     <insert id="addDriver" parameterType="com.xzsd.pc.driver.entity.Driver">
-        insert into t_sys_user(
+         insert into t_sys_user(
             user_code,
             user_acct,
             user_pwd,
@@ -34,8 +33,8 @@
             create_user,
             update_time,
             version
-        )
-        values(
+         )
+         values(
             #{driverId},
             #{userAcct},
             #{userPassword},
@@ -78,15 +77,6 @@
             0)
     </insert>
 
-    <!--查询省市区名称-->
-    <select id="getListAreaName" parameterType="java.lang.String" resultType="java.lang.String">
-        select
-        t1.area_name
-        from t_info_area_level t1, t_info_driver t2
-        where t1.area_id in (t2.province, t2.city, t2.area)
-        and t2.driver_id = #{driverId}
-    </select>
-
     <!--查询司机信息详情-->
     <select id="getDriverById" parameterType="java.lang.String" resultType="com.xzsd.pc.driver.entity.DriverVO">
         select
@@ -104,9 +94,9 @@
         from t_sys_user t1, t_info_driver t2, t_info_area_level t3, t_info_area_level t4, t_info_area_level t5
         where t1.is_delete = 0
         and t1.user_code = t2.driver_id
-        and t2.province = t3.area_id
-        and t2.city = t4.area_id
-        and t2.area = t5.area_id
+        and t2.province = t3.id
+        and t2.city = t4.id
+        and t2.area = t5.id
         and t1.user_code = #{driverId}
     </select>
 
@@ -130,18 +120,18 @@
     <update id="updateDriverArea" parameterType="com.xzsd.pc.driver.entity.Driver">
         update t_info_driver
         set
-        <if test="provinceId != null and provinceId != ''">
-            province = #{provinceId},
-        </if>
-        <if test="cityId != null and cityId != ''">
-            city = #{cityId},
-        </if>
-        <if test="areaId != null and areaId != ''">
-            area = #{areaId},
-        </if>
-        update_user = #{updateUser},
-        update_time = now(),
-        version = version + 1
+            <if test="provinceId != null and provinceId != ''">
+                province = #{provinceId},
+            </if>
+            <if test="cityId != null and cityId != ''">
+                city = #{cityId},
+            </if>
+            <if test="areaId != null and areaId != ''">
+                area = #{areaId},
+            </if>
+            update_user = #{updateUser},
+            update_time = now(),
+            version = version + 1
         where driver_id = #{driverId}
         and version = #{version}
     </update>
@@ -150,12 +140,12 @@
     <select id="getListDriverByAdmin" parameterType="com.xzsd.pc.driver.entity.Driver"
             resultType="com.xzsd.pc.driver.entity.DriverVO">
         select
-        u.user_code as driverId,
-        u.user_name as userName,
-        u.phone as phone,
-        u.idcard as idCard,
-        u.user_acct userAcct,
-        u.version version
+            u.user_code as driverId,
+            u.user_name as userName,
+            u.phone as phone,
+            u.idcard as idCard,
+            u.user_acct userAcct,
+            u.version version
         from t_sys_user u, t_info_driver d
         where u.is_delete = 0
         and u.role_id = 3
@@ -182,12 +172,12 @@
     <!--查询当前店长下的所有司机-->
     <select id="getListDriverByStore" parameterType="com.xzsd.pc.driver.entity.Driver" resultType="com.xzsd.pc.driver.entity.DriverVO">
         select
-        t1.user_code as driverId,
-        t1.user_name as userName,
-        t1.phone as phone,
-        t1.idcard as idCard,
-        t1.user_acct userAcct,
-        t1.version version
+            t1.user_code as driverId,
+            t1.user_name as userName,
+            t1.phone as phone,
+            t1.idcard as idCard,
+            t1.user_acct userAcct,
+            t1.version version
         from t_sys_user t1, t_info_driver t2, t_info_store t3
         where t1.is_delete = 0
         and t1.role_id = 3
@@ -219,10 +209,10 @@
     <update id="deleteDriverById" parameterType="java.lang.String">
         update t_sys_user
         set
-        is_delete = 1,
-        update_time = now(),
-        update_user = #{loginId},
-        version = version + 1
+            is_delete = 1,
+            update_time = now(),
+            update_user = #{loginId},
+            version = version + 1
         where user_id in
         <foreach item="driverId" index="index" collection="listDriverId" open="(" separator="," close=")">
             #{driverId}
@@ -233,10 +223,10 @@
     <update id="deleteDriverAreaById" parameterType="java.lang.String">
         update t_info_driver
         set
-        is_delete = 1,
-        update_time = now(),
-        update_user = #{loginId},
-        version = version + 1
+            is_delete = 1,
+            update_time = now(),
+            update_user = #{loginId},
+            version = version + 1
         where driver_id in
         <foreach item="driverId" index="index" collection="listDriverId" open="(" separator="," close=")">
             #{driverId}
